@@ -662,6 +662,10 @@ class CArgDeclNode(Node):
     def analyse(self, env, nonempty = 0, is_self_arg = False):
         if is_self_arg:
             self.base_type.is_self_arg = self.is_self_arg = True
+        if env and self.annotation:
+            type = self.annotation.analyse_as_type(env)
+            if type is not None:
+                return self.declarator, type
         if self.type is None:
             # The parser may missinterpret names as types...
             # We fix that here.
@@ -2047,9 +2051,7 @@ class DefNode(FuncDefNode):
             if hasattr(arg, 'name'):
                 name_declarator = None
             else:
-                base_type = arg.base_type.analyse(env)
-                name_declarator, type = \
-                    arg.declarator.analyse(base_type, env)
+                name_declarator, type = arg.analyse(env)
                 arg.name = name_declarator.name
                 arg.type = type
             self.align_argument_type(env, arg)
